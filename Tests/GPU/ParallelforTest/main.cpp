@@ -6,6 +6,13 @@ using namespace amrex;
 int main (int argc, char* argv[])
 {
     amrex::Initialize(argc,argv);
+
+    //warm up
+    for(int j;j<100;j++)
+    {
+        AMREX_FOR_1D (460000000,i,{double dummy0=1.0; double dummy1=dummy0+32.232*dummy0;});
+    }
+
     typedef std::chrono::high_resolution_clock Time;
     typedef std::chrono::duration<float> fsec;
 
