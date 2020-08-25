@@ -1,5 +1,6 @@
 #include <AMReX.H>
 #include <AMReX_Gpu.H>
+#include <cuda_profiler_api.h>
 
 using namespace amrex;
 
@@ -7,10 +8,16 @@ int main (int argc, char* argv[])
 {
     amrex::Initialize(argc,argv);
 
+    const int N = 460000000;
+{
+    Gpu::DeviceVector<Real> x_d(N);
+
+    auto x_d_ptr = x_d.dataPtr();
+
     //warm up
-    for(int j;j<100;j++)
+    for(int j=0;j<10;j++)
     {
-        AMREX_FOR_1D (460000000,i,{double dummy0=1.0; double dummy1=dummy0+32.232*dummy0;});
+        AMREX_FOR_1D (N,i,{double dummy=123.456; x_d_ptr[i]=dummy+123.456*dummy;});
     }
 
     typedef std::chrono::high_resolution_clock Time;
@@ -19,12 +26,20 @@ int main (int argc, char* argv[])
     Gpu::Device::synchronize();
     auto start_clock = Time::now();
 
-    AMREX_FOR_1D (460000000,i,{double dummy0=1.0; double dummy1=dummy0+32.232*dummy0;});
+    cudaProfilerStart();
+
+    for(int j=0;j<10;j++)
+    {
+        AMREX_FOR_1D (N,i,{double dummy=123.456; x_d_ptr[i]=dummy+123.456*dummy;});
+    }
 
     Gpu::Device::synchronize();
+
+    cudaProfilerStop();
+
     auto finish_clock = Time::now();
     fsec fs = finish_clock - start_clock;
     std::cout<<"time taken for amrex_parallel_for (msecs):" << fs.count()*1e3 << std::endl;
-
+}
     amrex::Finalize();
 }
