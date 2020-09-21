@@ -8,7 +8,7 @@ int main (int argc, char* argv[])
 {
     amrex::Initialize(argc,argv);
 
-    const int N = 460000000;
+    const int N = 10000000;
 {
     Gpu::DeviceVector<Real> x_d(N);
 
